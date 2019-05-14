@@ -6,7 +6,7 @@
 /*   By: agissing <agissing@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/04/16 15:18:17 by agissing          #+#    #+#             */
-/*   Updated: 2019/04/16 15:18:29 by agissing         ###   ########.fr       */
+/*   Updated: 2019/05/14 16:37:05 by agissing         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,6 @@ void		append_data(t_data **data, char *str, t_siz count)
 	tmp = new_elem(data);
 	chunks = (t_chunk *)str;
 	while (++i < MD5_CHUNK_NBR)
-		tmp->data[i] = chunks[i];
+		tmp->chunk_tab[i] = chunks[i];
 	tmp->size = count;
 }

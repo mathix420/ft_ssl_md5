@@ -6,7 +6,7 @@
 /*   By: agissing <agissing@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/04/11 14:43:29 by agissing          #+#    #+#             */
-/*   Updated: 2019/04/16 17:23:04 by agissing         ###   ########.fr       */
+/*   Updated: 2019/05/14 17:03:58 by agissing         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,27 +17,30 @@
 #  include "ft_ssl.h"
 # endif
 
-# define MD5_CHUNK_SIZE		16
+# define MD5_CHUNK_SIZE		2
 # define MD5_CHUNK_NBR		100
-# define MD5_TAB_SIZE		(MD5_CHUNK_SIZE * MD5_CHUNK_NBR * 4)
+# define MD5_TAB_SIZE		(MD5_CHUNK_SIZE * 4)
 
 struct s_list;
 typedef struct s_env	t_env;
 typedef uint64_t		t_siz;
+typedef uint32_t		t_sub;
 
-typedef struct			s_sub
-{
-	char		sub[4];
-}						t_sub;
-
+/*
+** msg = chunks de (8 * 4 * 16)(=512) bits en sub-chunks de 32 bits
+*/
 typedef struct			s_chunk
 {
 	t_sub		msg[MD5_CHUNK_SIZE];
 }						t_chunk;
 
+/*
+** data = tab de chunks de 512 bits
+** size = nombre de chunks utilises
+*/
 typedef struct			s_data
 {
-	t_chunk			data[MD5_CHUNK_NBR];
+	t_chunk			chunk_tab[MD5_CHUNK_NBR];
 	t_siz			size;
 	struct s_data	*next;
 }						t_data;

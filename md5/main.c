@@ -6,7 +6,7 @@
 /*   By: agissing <agissing@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/04/11 14:49:50 by agissing          #+#    #+#             */
-/*   Updated: 2019/04/16 17:29:15 by agissing         ###   ########.fr       */
+/*   Updated: 2019/05/14 19:00:51 by agissing         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,14 +43,14 @@ uint32_t	g_k[64] = {
 ** start debug fcts
 */
 
-void		print_data(t_data data)
+void		print_data(t_data *data)
 {
-	while (data.next)
+	while (data->next)
 	{
-		write(1, (char *)data.data, data.size);
-		data = *data.next;
+		write(1, (char *)data->chunk_tab, data->size);
+		data = data->next;
 	}
-	write(1, (char *)data.data, data.size);
+	write(1, (char *)data->chunk_tab, data->size);
 }
 
 /*
@@ -59,29 +59,38 @@ void		print_data(t_data data)
 
 void		pre_process(t_data *data)
 {
-	t_siz		id_data;
-	t_const		cst;
+	t_siz		id_tab;
+	t_siz		id_chunk;
 	t_siz		count;
+	t_data		*sav;
+
+	// Plus tard
+	t_const		cst;
 
 	cst.a = 0x67452301;
 	cst.b = 0xefcdab89;
 	cst.c = 0x98badcfe;
 	cst.d = 0x10325476;
+	// End plus tard
+
 	count = 0;
+	sav = data;
+//	write(1, data[2].chunk_tab, MD5_TAB_SIZE);
 	while (data->next && ++count)
 		data = data->next;
-	count = count * MD5_TAB_SIZE;
-	id_data = data->size / (MD5_TAB_SIZE + 1);
-	data[id_data].data[data->size / sizeof(t_chunk)].msg[data->size % sizeof(t_chunk)].sub[0] = 0x80;
-	data->size++;
-	while ((count + data->size) % 64 != 56)
-	{
-		data[id_data].data[data->size / sizeof(t_chunk)].msg[data->size % sizeof(t_chunk)].sub[0] = 0;
-		data[id_data].data[data->size / sizeof(t_chunk)].msg[data->size % sizeof(t_chunk)].sub[1] = 0;
-		data[id_data].data[data->size / sizeof(t_chunk)].msg[data->size % sizeof(t_chunk)].sub[2] = 0;
-		data[id_data].data[data->size / sizeof(t_chunk)].msg[data->size % sizeof(t_chunk)].sub[3] = 0;
-		data->size++;
-	}
+//	count = count;
+	id_tab = data->size / (MD5_TAB_SIZE + 1);
+	id_chunk = (data->size - count) / (MD5_CHUNK_SIZE + 1);
+	// 11 tabs = 704
+	write(1, (char *)&sav->chunk_tab[0], MD5_CHUNK_SIZE * sizeof(t_sub));
+	printf("count:%llu tab:%llu chunk:%llu\n", count, id_tab, id_chunk);
+	/* data[id_data].chunk_tab[data->size / sizeof(t_chunk)].msg[data->size % sizeof(t_chunk)] = 0x80; */
+	/* data->size++; */
+	/* while ((count + data->size) % 64 != 56) */
+	/* { */
+	/* 	data[id_data].chunk_tab[data->size / sizeof(t_chunk)].msg[data->size % sizeof(t_chunk)] = 0; */
+	/* 	data->size++; */
+	/* } */
 //	write(1, (char*)data[id_data].data, data->size);
 }
 
@@ -97,9 +106,10 @@ void		md5(t_env *env)
 	if (env->argc >= 3)
 		e_error((fd = open(env->opt, O_RDONLY)) < 0, 0);
 	tmp[0] = 0;
-	while ((count = read(fd, tmp, MD5_TAB_SIZE)))
+	while ((count = read(fd, tmp, MD5_TAB_SIZE * MD5_CHUNK_NBR)))
 		append_data(data, tmp, count);
+//	print_data(*data);
 	pre_process(*data);
-//	print_data(**data);	
+//	print_data(*data);
 	close(fd);
 }

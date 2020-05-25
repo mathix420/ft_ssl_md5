@@ -105,6 +105,10 @@ void		md5(t_env *env)
 
 	fd = 0;
 	vars = ft_memalloc(sizeof (t_const));
+	vars->a = 0x67452301;
+	vars->b = 0xefcdab89;
+	vars->c = 0x98badcfe;
+	vars->d = 0x10325476;
 	if (env->argc >= 3)
 		e_error((fd = open(env->opt, O_RDONLY)) < 0, 0);
 	ft_bzero(tmp, MD5_CHUNK_SIZE + 1);

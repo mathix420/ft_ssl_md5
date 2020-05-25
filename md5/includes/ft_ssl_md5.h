@@ -17,7 +17,8 @@
 #  include "ft_ssl.h"
 # endif
 
-# define MD5_CHUNK_SIZE		2
+# define MD5_CHUNK_SIZE		64
+# define MD5_PAD_LIMIT		56
 # define MD5_CHUNK_NBR		100
 # define MD5_TAB_SIZE		(MD5_CHUNK_SIZE * 4)
 

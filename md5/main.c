@@ -46,16 +46,26 @@ int		pad_chunk(char *chunk, int count)
 	return count;
 }
 
-void		step(t_sub *chunks, t_const *vars)
+static uint32_t	leftrotate(uint32_t x, uint32_t round)
 {
-	int		i;
-	int		f;
-	int		g;
-	int		a;
-	int		b;
-	int		c;
-	int		d;
+	uint32_t	shift;
 
+	shift = g_s[round];
+	return ((x << shift) | (x >> (32 - shift)));
+}
+
+void		step(void *ptr, t_const *vars)
+{
+	uint32_t	i;
+	uint32_t	f;
+	uint32_t	g;
+	uint32_t	a;
+	uint32_t	b;
+	uint32_t	c;
+	uint32_t	d;
+	uint32_t	*chunks;
+
+	chunks = ptr;
 	a = vars->a;
 	b = vars->b;
 	c = vars->c;
@@ -63,14 +73,14 @@ void		step(t_sub *chunks, t_const *vars)
 
 	for (i = 0; i < 64; ++i)
 	{
-		if (0 <= i && 15 >= i)
+		if (i <= 15)
 		{
-			f = (b & c) | ((!b) & c);
+			f = (b & c) | ((~b) & d);
 			g = i;
 		}
 		else if (16 <= i && 31 >= i)
 		{
-			f = (d & b) | ((!d) & c);
+			f = (d & b) | ((~d) & c);
 			g = (5 * i + 1) % 16;
 		}
 		else if (32 <= i && 47 >= i)
@@ -78,55 +88,76 @@ void		step(t_sub *chunks, t_const *vars)
 			f = b ^ c ^ d;
 			g = (3 * i + 5) % 16;
 		}
-		else if (48 <= i && 63 >= i)
+		else if (i >= 48)
 		{
-			f = c ^ (b | (!d));
+			f = c ^ (b | (~d));
 			g = (7 * i) % 16;
 		}
-		f = f + a + g_k[i] + chunks[g];
+		f += a + g_k[i] + chunks[g];
         a = d;
         d = c;
         c = b;
-        b = b + ((f << g_s[i]) | (f >> (32 - g_s[i])));
+        b += leftrotate(f, i);
 	}
-	vars->a = vars->a + a;
-    vars->b = vars->b + b;
-    vars->c = vars->c + c;
-    vars->d = vars->d + d;
+	vars->a += a;
+    vars->b += b;
+    vars->c += c;
+    vars->d += d;
+}
+
+uint32_t 	reverse(uint32_t x)
+{
+    return ((x>>24)&0xff) | // move byte 3 to byte 0
+                    ((x<<8)&0xff0000) | // move byte 1 to byte 2
+                    ((x>>8)&0xff00) | // move byte 2 to byte 1
+                    ((x<<24)&0xff000000);
+}
+
+void		final(t_const	*vars)
+{
+	int		i;
+
+	i = 1;
+	if (*(char *)&i == 1)
+		printf("\n\n%x%x%x%x\n", reverse(vars->a), reverse(vars->b), reverse(vars->c), reverse(vars->d));
+	else
+		printf("\n\n%x%x%x%x\n", vars->a, vars->b, vars->c, vars->d);
 }
 
 void		md5(t_env *env)
 {
-	char	tmp[MD5_CHUNK_SIZE + 1];
-	t_sub	*subs;
-	t_siz	count;
-	t_const	*vars;
 	int		fd;
+	char	tmp[MD5_CHUNK_SIZE + 1];
+	t_siz	count;
+	t_siz	size;
+	t_const	*vars;
 
 	fd = 0;
+	size = 0;
 	vars = ft_memalloc(sizeof (t_const));
+
 	vars->a = 0x67452301;
 	vars->b = 0xefcdab89;
 	vars->c = 0x98badcfe;
 	vars->d = 0x10325476;
+
 	if (env->argc >= 3)
 		e_error((fd = open(env->opt, O_RDONLY)) < 0, 0);
 	ft_bzero(tmp, MD5_CHUNK_SIZE + 1);
 	while ((count = read(fd, tmp, MD5_CHUNK_SIZE)))
 	{
 		tmp[count] = 0;
-		subs = (t_sub *)tmp;
-		step(subs, vars);
-		if (count != MD5_CHUNK_SIZE)
+		size += count;
+		if (count < MD5_CHUNK_SIZE)
 			break;
-		printf("%s", tmp);
+		step(tmp, vars);
+		ft_bzero(tmp, MD5_CHUNK_SIZE + 1);
 	}
-	tmp[count] = 1;
-	count = pad_chunk(tmp, count);
-	subs = (t_sub *)tmp;
-	step(subs, vars);
-	printf("%sEND - %li\n", tmp, count);
-	printf("\n\n%x%x%x%x\n", vars->a, vars->b, vars->c, vars->d);
-	// pre_process(*data);
 	close(fd);
+	pad_chunk(tmp, count);
+	tmp[count] |= 1 << 7;
+	*((uint64_t*)&tmp[64 - 8]) = size * 8;
+
+	step(tmp, vars);
+	final(vars);
 }

@@ -24,7 +24,7 @@
 
 struct s_list;
 typedef struct s_env	t_env;
-typedef uint64_t		t_siz;
+typedef unsigned int		t_siz;
 typedef uint32_t		t_sub;
 
 /*

@@ -39,77 +39,125 @@ uint32_t	g_k[64] = {
 	0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391
 };
 
-/*
-** start debug fcts
-*/
-
-void		print_data(t_data *data)
+int		pad_chunk(char *chunk, int count)
 {
-	while (data->next)
-	{
-		write(1, (char *)data->chunk_tab, data->size);
-		data = data->next;
-	}
-	write(1, (char *)data->chunk_tab, data->size);
+	while (count < MD5_PAD_LIMIT)
+		chunk[count++] = 0;
+	return count;
 }
 
-/*
-** end debug fcts
-*/
-
-void		pre_process(t_data *data)
+static uint32_t	leftrotate(uint32_t x, uint32_t round)
 {
-	t_siz		id_tab;
-	t_siz		id_chunk;
-	t_siz		count;
-	t_data		*sav;
+	uint32_t	shift;
 
-	// Plus tard
-	t_const		cst;
+	shift = g_s[round];
+	return ((x << shift) | (x >> (32 - shift)));
+}
 
-	cst.a = 0x67452301;
-	cst.b = 0xefcdab89;
-	cst.c = 0x98badcfe;
-	cst.d = 0x10325476;
-	// End plus tard
+void		step(void *ptr, t_const *vars)
+{
+	uint32_t	i;
+	uint32_t	f;
+	uint32_t	g;
+	uint32_t	a;
+	uint32_t	b;
+	uint32_t	c;
+	uint32_t	d;
+	uint32_t	*chunks;
 
-	count = 0;
-	sav = data;
-//	write(1, data[2].chunk_tab, MD5_TAB_SIZE);
-	while (data->next && ++count)
-		data = data->next;
-//	count = count;
-	id_tab = data->size / (MD5_TAB_SIZE + 1);
-	id_chunk = (data->size - count) / (MD5_CHUNK_SIZE + 1);
-	// 11 tabs = 704
-	write(1, (char *)&sav->chunk_tab[0], MD5_CHUNK_SIZE * sizeof(t_sub));
-	printf("count:%llu tab:%llu chunk:%llu\n", count, id_tab, id_chunk);
-	/* data[id_data].chunk_tab[data->size / sizeof(t_chunk)].msg[data->size % sizeof(t_chunk)] = 0x80; */
-	/* data->size++; */
-	/* while ((count + data->size) % 64 != 56) */
-	/* { */
-	/* 	data[id_data].chunk_tab[data->size / sizeof(t_chunk)].msg[data->size % sizeof(t_chunk)] = 0; */
-	/* 	data->size++; */
-	/* } */
-//	write(1, (char*)data[id_data].data, data->size);
+	chunks = ptr;
+	a = vars->a;
+	b = vars->b;
+	c = vars->c;
+	d = vars->d;
+
+	for (i = 0; i < 64; ++i)
+	{
+		if (i <= 15)
+		{
+			f = (b & c) | ((~b) & d);
+			g = i;
+		}
+		else if (16 <= i && 31 >= i)
+		{
+			f = (d & b) | ((~d) & c);
+			g = (5 * i + 1) % 16;
+		}
+		else if (32 <= i && 47 >= i)
+		{
+			f = b ^ c ^ d;
+			g = (3 * i + 5) % 16;
+		}
+		else if (i >= 48)
+		{
+			f = c ^ (b | (~d));
+			g = (7 * i) % 16;
+		}
+		f += a + g_k[i] + chunks[g];
+        a = d;
+        d = c;
+        c = b;
+        b += leftrotate(f, i);
+	}
+	vars->a += a;
+    vars->b += b;
+    vars->c += c;
+    vars->d += d;
+}
+
+uint32_t 	reverse(uint32_t x)
+{
+    return ((x>>24)&0xff) | // move byte 3 to byte 0
+                    ((x<<8)&0xff0000) | // move byte 1 to byte 2
+                    ((x>>8)&0xff00) | // move byte 2 to byte 1
+                    ((x<<24)&0xff000000);
+}
+
+void		final(t_const	*vars)
+{
+	int		i;
+
+	i = 1;
+	if (*(char *)&i == 1)
+		printf("\n\n%x%x%x%x\n", reverse(vars->a), reverse(vars->b), reverse(vars->c), reverse(vars->d));
+	else
+		printf("\n\n%x%x%x%x\n", vars->a, vars->b, vars->c, vars->d);
 }
 
 void		md5(t_env *env)
 {
-	char	tmp[MD5_TAB_SIZE];
-	t_data	**data;
-	t_siz	count;
 	int		fd;
+	char	tmp[MD5_CHUNK_SIZE + 1];
+	t_siz	count;
+	t_siz	size;
+	t_const	*vars;
 
 	fd = 0;
-	e_error(!(data = ft_memalloc(sizeof(t_data *))), 0);
+	size = 0;
+	vars = ft_memalloc(sizeof (t_const));
+
+	vars->a = 0x67452301;
+	vars->b = 0xefcdab89;
+	vars->c = 0x98badcfe;
+	vars->d = 0x10325476;
+
 	if (env->argc >= 3)
 		e_error((fd = open(env->opt, O_RDONLY)) < 0, 0);
-	tmp[0] = 0;
-	while ((count = read(fd, tmp, MD5_TAB_SIZE * MD5_CHUNK_NBR)))
-		append_data(data, tmp, count);
-//	print_data(*data);
-	pre_process(*data);
-//	print_data(*data);
+	ft_bzero(tmp, MD5_CHUNK_SIZE + 1);
+	while ((count = read(fd, tmp, MD5_CHUNK_SIZE)))
+	{
+		tmp[count] = 0;
+		size += count;
+		if (count < MD5_CHUNK_SIZE)
+			break;
+		step(tmp, vars);
+		ft_bzero(tmp, MD5_CHUNK_SIZE + 1);
+	}
 	close(fd);
+	pad_chunk(tmp, count);
+	tmp[count] |= 1 << 7;
+	*((uint64_t*)&tmp[64 - 8]) = size * 8;
+
+	step(tmp, vars);
+	final(vars);
 }

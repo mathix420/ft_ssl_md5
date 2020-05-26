@@ -16,6 +16,7 @@
 # include <stdlib.h>
 # include <unistd.h>
 # include <stdio.h>
+# include <stdint.h>
 
 # ifndef FT_SSL_MD5_H
 #  include "../md5/includes/ft_ssl_md5.h"

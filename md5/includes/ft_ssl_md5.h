@@ -17,13 +17,14 @@
 #  include "ft_ssl.h"
 # endif
 
-# define MD5_CHUNK_SIZE		2
+# define MD5_CHUNK_SIZE		64
+# define MD5_PAD_LIMIT		56
 # define MD5_CHUNK_NBR		100
 # define MD5_TAB_SIZE		(MD5_CHUNK_SIZE * 4)
 
 struct s_list;
 typedef struct s_env	t_env;
-typedef uint64_t		t_siz;
+typedef unsigned int		t_siz;
 typedef uint32_t		t_sub;
 
 /*

@@ -46,11 +46,11 @@ _SRC_INCLUDES = ft_ssl.h
 
 #ssl
 #{{AUTO-SRC}path=ssl;file=*.c;name=_SRC_SSL}
-_SRC_SSL = check_param.c \
-error.c \
+_SRC_SSL = error.c \
+check_param.c \
 ft_libft.c \
-main.c \
-parser.c
+parser.c \
+main.c
 #{END}
 SRC_SSL = $(addprefix $(SSL_DIR),$(_SRC_SSL))
 OBJ_SSL = $(addprefix $(SSL_DIR_OBJ),$(_SRC_SSL:.c=.o))
@@ -58,8 +58,8 @@ OBJ_SSL = $(addprefix $(SSL_DIR_OBJ),$(_SRC_SSL:.c=.o))
 #md5
 #{{AUTO-SRC}path=md5;file=*.c;name=_SRC_MD5}
 _SRC_MD5 = data.c \
-libfct.c \
-main.c
+main.c \
+libfct.c
 #{END}
 SRC_MD5 = $(addprefix $(MD5_DIR),$(_SRC_MD5))
 OBJ_MD5 = $(addprefix $(MD5_DIR_OBJ),$(_SRC_MD5:.c=.o))

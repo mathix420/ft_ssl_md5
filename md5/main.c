@@ -119,9 +119,9 @@ void		final(t_const	*vars)
 
 	i = 1;
 	if (*(char *)&i == 1)
-		printf("\n\n%x%x%x%x\n", reverse(vars->a), reverse(vars->b), reverse(vars->c), reverse(vars->d));
+		printf("%.8x%.8x%.8x%.8x\n", reverse(vars->a), reverse(vars->b), reverse(vars->c), reverse(vars->d));
 	else
-		printf("\n\n%x%x%x%x\n", vars->a, vars->b, vars->c, vars->d);
+		printf("%.8x%.8x%.8x%.8x\n", vars->a, vars->b, vars->c, vars->d);
 }
 
 void		md5(t_env *env)
@@ -156,6 +156,10 @@ void		md5(t_env *env)
 	close(fd);
 	pad_chunk(tmp, count);
 	tmp[count] |= 1 << 7;
+	if (count >= 56) {
+		step(tmp, vars);
+		ft_bzero(tmp, MD5_CHUNK_SIZE + 1);
+	}
 	*((uint64_t*)&tmp[64 - 8]) = size * 8;
 
 	step(tmp, vars);

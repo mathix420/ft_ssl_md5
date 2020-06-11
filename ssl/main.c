@@ -18,7 +18,7 @@ static void		init_env(t_env *env)
 
 	e_error(!(new = malloc(sizeof(t_algos) * 5)), 0);
 	new[0] = (t_algos){"md5", &is_param_md5, &md5};
-	new[1] = (t_algos){"sha256", &is_param_sha, 0};
+	new[1] = (t_algos){"sha256", &is_param_sha, &sha256};
 	new[2] = (t_algos){"sha512", &is_param_sha, 0};
 	new[3] = (t_algos){"whirlpool", &is_param_whirlpool, 0};
 	new[4] = (t_algos){0, 0, 0};

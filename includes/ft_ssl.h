@@ -22,6 +22,10 @@
 #  include "../md5/includes/ft_ssl_md5.h"
 # endif
 
+# ifndef FT_SSL_SHA256_H
+#  include "../sha256/includes/ft_ssl_sha256.h"
+# endif
+
 struct s_env;
 typedef int		t_param;
 
@@ -61,6 +65,10 @@ void			put_help(int cond, t_env *env);
 /*
 ** Libft fct
 */
+void			*ft_memcpy(void *restrict dst, const void *restrict src,
+						size_t n);
 int				ft_strcmp(const char *s1, const char *s2);
+void			*ft_memalloc(size_t size);
+void			ft_bzero(void *s, size_t n);
 
 #endif

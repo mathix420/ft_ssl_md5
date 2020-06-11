@@ -57,15 +57,14 @@ OBJ_SSL = $(addprefix $(SSL_DIR_OBJ),$(_SRC_SSL:.c=.o))
 
 #md5
 #{{AUTO-SRC}path=md5;file=*.c;name=_SRC_MD5}
-_SRC_MD5 = main.c \
-libfct.c
+_SRC_MD5 = main.c
 #{END}
 SRC_MD5 = $(addprefix $(MD5_DIR),$(_SRC_MD5))
 OBJ_MD5 = $(addprefix $(MD5_DIR_OBJ),$(_SRC_MD5:.c=.o))
 
 #sha256
 #{{AUTO-SRC}path=sha256;file=*.c;name=_SRC_SHA256}
-_SRC_SHA256 = 
+_SRC_SHA256 = main.c
 #{END}
 SRC_SHA256 = $(addprefix $(SHA256_DIR),$(_SRC_SHA256))
 OBJ_SHA256 = $(addprefix $(SHA256_DIR_OBJ),$(_SRC_SHA256:.c=.o))

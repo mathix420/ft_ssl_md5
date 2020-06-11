@@ -11,7 +11,6 @@
 /* ************************************************************************** */
 
 #include "ft_ssl_md5.h"
-#include <fcntl.h>
 
 uint32_t	g_s[64] = {
 	7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22,
@@ -39,7 +38,7 @@ uint32_t	g_k[64] = {
 	0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391
 };
 
-int		pad_chunk(char *chunk, int count)
+int		pad_chunk(char *chunk, t_siz count)
 {
 	while (count < MD5_PAD_LIMIT)
 		chunk[count++] = 0;
@@ -54,7 +53,7 @@ static uint32_t	leftrotate(uint32_t x, uint32_t round)
 	return ((x << shift) | (x >> (32 - shift)));
 }
 
-void		step(void *ptr, t_const *vars)
+void		step(void *ptr, t_md5 *vars)
 {
 	uint32_t	i;
 	uint32_t	f;
@@ -113,7 +112,7 @@ uint32_t 	reverse(uint32_t x)
                     ((x<<24)&0xff000000);
 }
 
-void		final(t_const	*vars)
+void		final(t_md5	*vars)
 {
 	int		i;
 
@@ -130,11 +129,11 @@ void		md5(t_env *env)
 	char	tmp[MD5_CHUNK_SIZE + 1];
 	t_siz	count;
 	t_siz	size;
-	t_const	*vars;
+	t_md5	*vars;
 
 	fd = 0;
 	size = 0;
-	vars = ft_memalloc(sizeof (t_const));
+	vars = ft_memalloc(sizeof (t_md5));
 
 	vars->a = 0x67452301;
 	vars->b = 0xefcdab89;

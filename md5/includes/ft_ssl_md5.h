@@ -65,10 +65,4 @@ void					md5(t_env *env);
 void					*ft_memalloc(size_t size);
 void					ft_bzero(void *s, size_t n);
 
-/*
-** data
-*/
-t_data					*new_elem(t_data **data);
-void					append_data(t_data **data, char *str, t_siz count);
-
 #endif

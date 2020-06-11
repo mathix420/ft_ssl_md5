@@ -57,8 +57,7 @@ OBJ_SSL = $(addprefix $(SSL_DIR_OBJ),$(_SRC_SSL:.c=.o))
 
 #md5
 #{{AUTO-SRC}path=md5;file=*.c;name=_SRC_MD5}
-_SRC_MD5 = data.c \
-main.c \
+_SRC_MD5 = main.c \
 libfct.c
 #{END}
 SRC_MD5 = $(addprefix $(MD5_DIR),$(_SRC_MD5))
